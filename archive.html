@@ -1,0 +1,22 @@
+---
+layout: default
+title: 归档
+permalink: /archive/
+---
+
+{% assign briefs = site.pages | where_exp: "page", "page.path contains 'content/briefs/'" | sort: "date_range" | reverse %}
+
+<section class="page-header">
+  <h1>归档</h1>
+  <p>按日期查看已经整理完成的信息门户摘要。</p>
+</section>
+
+<section class="archive-list">
+  {% for brief in briefs %}
+    <article class="archive-row">
+      <time>{{ brief.date_range }}</time>
+      <a href="{{ brief.url | relative_url }}">{{ brief.title }}</a>
+      <span>{{ brief.items_count | default: 0 }} 条</span>
+    </article>
+  {% endfor %}
+</section>

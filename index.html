@@ -1,0 +1,25 @@
+---
+layout: default
+title: 首页
+---
+
+{% assign briefs = site.pages | where_exp: "page", "page.path contains 'content/briefs/'" | sort: "date_range" | reverse %}
+{% assign today_brief = briefs | first %}
+
+{% if today_brief %}
+  <nav id="category-toc" class="category-toc" aria-label="当日分类目录" hidden></nav>
+{% endif %}
+
+{% if today_brief %}
+  <article class="brief-page home-brief">
+    <div class="prose home-prose">
+      {{ today_brief.content | markdownify }}
+    </div>
+  </article>
+{% else %}
+  <section class="section">
+    <p class="empty">还没有 AI 整理后的摘要。先运行 <code>python scripts/run_all.py</code>。</p>
+  </section>
+{% endif %}
+
+<script src="{{ '/assets/js/toc.js' | relative_url }}" defer></script>
