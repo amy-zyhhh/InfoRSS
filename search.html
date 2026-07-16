@@ -20,6 +20,13 @@ permalink: /search/
       <span>搜索</span>
       <input id="search-input" type="search" placeholder="搜索标题、摘要、关键词">
     </label>
+    <div class="check-filter">
+      <span>全文</span>
+      <label>
+        <input id="fulltext-filter" type="checkbox">
+        <span>搜索已抓取原文</span>
+      </label>
+    </div>
     <label>
       <span>类别</span>
       <select id="category-filter">
@@ -50,5 +57,6 @@ permalink: /search/
 
 <script>
   window.INFO_RSS_SEARCH_INDEX = "{{ '/assets/search-index.json' | relative_url }}";
+  window.INFO_RSS_BASE_URL = "{{ '/' | relative_url }}";
 </script>
 <script src="{{ '/assets/js/search.js' | relative_url }}" defer></script>

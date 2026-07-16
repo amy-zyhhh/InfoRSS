@@ -6,11 +6,13 @@
     audience: "",
     start: "",
     end: "",
+    fullText: false,
   };
 
   const els = {
     query: document.getElementById("search-input"),
     category: document.getElementById("category-filter"),
+    fullText: document.getElementById("fulltext-filter"),
     audience: document.getElementById("audience-filter"),
     start: document.getElementById("date-start"),
     end: document.getElementById("date-end"),
@@ -39,6 +41,13 @@
       .replace(/"/g, "&quot;");
   }
 
+  function siteUrl(value) {
+    const raw = String(value || "");
+    if (!raw || /^https?:\/\//i.test(raw)) return raw;
+    const base = String(window.INFO_RSS_BASE_URL || "/").replace(/\/+$/, "");
+    return `${base}/${raw.replace(/^\/+/, "")}`;
+  }
+
   function uniqueValues(key) {
     return Array.from(new Set(state.items.map((item) => item[key]).filter(Boolean))).sort((a, b) =>
       a.localeCompare(b, "zh-Hans-CN")
@@ -56,7 +65,7 @@
   }
 
   function matches(item) {
-    const haystack = normalize(item.text);
+    const haystack = normalize(state.fullText ? `${item.text || ""} ${item.raw_text || ""}` : item.text);
     const query = normalize(state.query);
     const date = itemDate(item);
 
@@ -93,7 +102,11 @@
             <p>${escapeHtml(item.summary)}</p>
             <div class="notice-detail">
               <span>适用对象：${escapeHtml(item.audience || "未标注")}</span>
-              <a href="${escapeHtml(item.source_url)}" target="_blank" rel="noopener">原文</a>
+              ${
+                item.raw_url
+                  ? `<span class="notice-actions"><a href="${escapeHtml(siteUrl(item.raw_url))}">已抓取的原文</a></span>`
+                  : ""
+              }
             </div>
             <div class="tag-list">${keywords}</div>
           </article>
@@ -108,11 +121,12 @@
     state.audience = els.audience.value;
     state.start = els.start.value;
     state.end = els.end.value;
+    state.fullText = Boolean(els.fullText && els.fullText.checked);
     render(state.items.filter(matches));
   }
 
   function bind() {
-    [els.query, els.category, els.audience, els.start, els.end].forEach((el) => {
+    [els.query, els.category, els.audience, els.start, els.end, els.fullText].filter(Boolean).forEach((el) => {
       el.addEventListener("input", applyFilters);
       el.addEventListener("change", applyFilters);
     });
@@ -120,6 +134,7 @@
       [els.query, els.category, els.audience, els.start, els.end].forEach((el) => {
         el.value = "";
       });
+      if (els.fullText) els.fullText.checked = false;
       applyFilters();
     });
   }

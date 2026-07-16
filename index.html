@@ -7,7 +7,7 @@ title: 首页
 {% assign today_brief = briefs | first %}
 
 {% if today_brief %}
-  {% assign notice_alert_threshold = site.notice_alert_threshold | default: 3 | plus: 0 %}
+  {% assign notice_alert_threshold = site.notice_alert_threshold | default: 90 | plus: 0 %}
   {% assign today_items_count = today_brief.items_count | default: 0 | plus: 0 %}
   {% if today_items_count > notice_alert_threshold %}
     <aside class="notice-alert" role="status">

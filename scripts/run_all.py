@@ -54,6 +54,7 @@ def main() -> int:
     parser.add_argument("date_range", nargs="?", help="Date or date range, e.g. 20260713 or 20260712-20260713.")
     parser.add_argument("--skip-fetch", action="store_true", help="Skip RSS fetching.")
     parser.add_argument("--skip-raw-md", action="store_true", help="Skip raw Markdown export.")
+    parser.add_argument("--skip-public-raw", action="store_true", help="Skip public captured raw pages.")
     parser.add_argument("--skip-ai", action="store_true", help="Skip AI brief generation.")
     parser.add_argument("--skip-index", action="store_true", help="Skip search index generation.")
     args = parser.parse_args()
@@ -77,6 +78,11 @@ def main() -> int:
             args.skip_raw_md,
         ),
         (
+            "Export public captured raw pages",
+            [python, "scripts/export_public_raw.py", date_range],
+            args.skip_public_raw,
+        ),
+        (
             "Generate AI brief",
             [python, "scripts/process_ai.py", date_range],
             args.skip_ai,
@@ -96,6 +102,7 @@ def main() -> int:
 
     print("Done.")
     print(f"Raw Markdown: content/daily/{date_range}.md")
+    print(f"Public raw day page: content/raw/daily/{date_range}.md")
     print(f"AI brief: content/briefs/{date_range}.md")
     print("Search index: assets/search-index.json")
     return 0

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -51,6 +52,32 @@ def parse_heading_title(value: str) -> tuple[str, str]:
 
 def item_url(date_range: str, item_index: int) -> str:
     return f"/content/briefs/{date_range}/#item-{item_index}"
+
+
+def raw_slug(source_url: str, fallback: str) -> str:
+    stable = source_url or fallback
+    return hashlib.sha1(stable.encode("utf-8", errors="replace")).hexdigest()[:16]
+
+
+def raw_item_path(source_url: str, fallback: str) -> Path:
+    return Path("content/raw/items") / f"{raw_slug(source_url, fallback)}.md"
+
+
+def raw_url(source_url: str, fallback: str) -> str:
+    slug = raw_slug(source_url, fallback)
+    path = Path("content/raw/items") / f"{slug}.md"
+    if not path.exists():
+        return ""
+    return f"/content/raw/items/{slug}/"
+
+
+def raw_text(source_url: str, fallback: str) -> str:
+    path = raw_item_path(source_url, fallback)
+    if not path.exists():
+        return ""
+    markdown = path.read_text(encoding="utf-8")
+    _, body = parse_frontmatter(markdown)
+    return re.sub(r"\s+", " ", body).strip()
 
 
 def parse_brief(path: Path) -> list[dict[str, str]]:
@@ -104,6 +131,8 @@ def parse_brief(path: Path) -> list[dict[str, str]]:
                     "keywords": "",
                     "summary": "",
                     "source_url": source_url,
+                    "raw_url": raw_url(source_url, f"{date_range}-{item_index}"),
+                    "raw_text": raw_text(source_url, f"{date_range}-{item_index}"),
                     "page_url": page_url,
                     "item_url": item_url(path.stem, item_index),
                 }
