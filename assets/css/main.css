@@ -238,6 +238,50 @@ h3 {
   cursor: pointer;
 }
 
+.archive-filter {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 160px)) auto 1fr;
+  gap: 12px;
+  align-items: end;
+  padding: 24px 0 0;
+}
+
+.archive-filter label {
+  display: grid;
+  gap: 6px;
+}
+
+.archive-filter span,
+.archive-filter label span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.archive-filter select,
+.archive-filter button {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 10px;
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.archive-filter button {
+  min-width: 76px;
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+  cursor: pointer;
+}
+
+#archive-count {
+  align-self: center;
+  justify-self: end;
+}
+
 .notice-list {
   display: grid;
   gap: 12px;
@@ -524,9 +568,21 @@ h3 {
     gap: 10px;
   }
 
+  .archive-filter {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding-top: 18px;
+  }
+
+  #archive-count {
+    justify-self: start;
+  }
+
   .filters input,
   .filters select,
-  .filters button {
+  .filters button,
+  .archive-filter select,
+  .archive-filter button {
     min-height: 40px;
   }
 

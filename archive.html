@@ -11,12 +11,37 @@ permalink: /archive/
   <p>按日期查看已经整理完成的信息门户摘要。</p>
 </section>
 
-<section class="archive-list">
+<section class="archive-filter" aria-label="归档日期筛选">
+  <label>
+    <span>年份</span>
+    <select id="archive-year">
+      <option value="">全部年份</option>
+    </select>
+  </label>
+  <label>
+    <span>月份</span>
+    <select id="archive-month">
+      <option value="">全部月份</option>
+    </select>
+  </label>
+  <label>
+    <span>日期</span>
+    <select id="archive-day">
+      <option value="">全部日期</option>
+    </select>
+  </label>
+  <button id="archive-reset" type="button">重置</button>
+  <span id="archive-count" class="muted"></span>
+</section>
+
+<section id="archive-list" class="archive-list">
   {% for brief in briefs %}
-    <article class="archive-row">
+    <article class="archive-row" data-date-range="{{ brief.date_range }}">
       <time>{{ brief.date_range }}</time>
       <a href="{{ brief.url | relative_url }}">{{ brief.title }}</a>
       <span>{{ brief.items_count | default: 0 }} 条</span>
     </article>
   {% endfor %}
 </section>
+
+<script src="{{ '/assets/js/archive.js' | relative_url }}" defer></script>
