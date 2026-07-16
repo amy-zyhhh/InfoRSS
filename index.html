@@ -31,3 +31,11 @@ title: 首页
 {% endif %}
 
 <script src="{{ '/assets/js/toc.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>
+<script>
+  window.INFO_RSS_SEARCH_INDEX = "{{ '/assets/search-index.json' | relative_url }}";
+  window.INFO_RSS_BASE_URL = "{{ '/' | relative_url }}";
+  {% if today_brief %}
+    window.INFO_RSS_CURRENT_BRIEF_URL = "{{ today_brief.url | relative_url }}";
+  {% endif %}
+</script>
+<script src="{{ '/assets/js/brief-raw-links.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>

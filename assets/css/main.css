@@ -201,15 +201,14 @@ h3 {
 
 .filters {
   display: grid;
-  grid-template-columns: minmax(240px, 1.6fr) auto repeat(2, minmax(132px, 1fr)) minmax(270px, 1.4fr) auto;
+  grid-template-columns: minmax(240px, 1.7fr) auto repeat(4, minmax(132px, 1fr)) auto;
   gap: 14px;
   align-items: end;
   margin-bottom: 18px;
 }
 
 .filters label,
-.filters .check-filter,
-.filters .date-range-filter {
+.filters .check-filter {
   display: grid;
   gap: 6px;
 }
@@ -239,17 +238,6 @@ h3 {
   background: transparent;
   border: 0;
   accent-color: var(--accent);
-}
-
-.date-range-filter > div {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  gap: 8px;
-  align-items: center;
-}
-
-.date-range-filter > div > span {
-  color: var(--muted);
 }
 
 .sr-only {
@@ -639,15 +627,6 @@ h3 {
     gap: 10px;
   }
 
-  .date-range-filter > div {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-
-  .date-range-filter > div > span {
-    display: none;
-  }
-
   .archive-filter {
     grid-template-columns: 1fr;
     gap: 10px;
@@ -720,13 +699,9 @@ h3 {
     grid-template-columns: minmax(240px, 1.4fr) auto repeat(2, minmax(140px, 1fr));
   }
 
-  .date-range-filter {
-    grid-column: 1 / span 3;
-  }
-
   .filters button {
-    grid-column: 4;
-    justify-self: stretch;
+    grid-column: 1 / -1;
+    justify-self: start;
     width: auto;
     min-width: 96px;
   }

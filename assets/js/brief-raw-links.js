@@ -18,6 +18,9 @@
   }
 
   function currentBriefPath() {
+    if (window.INFO_RSS_CURRENT_BRIEF_URL) {
+      return String(window.INFO_RSS_CURRENT_BRIEF_URL).replace(/\/+$/, "/");
+    }
     const pathname = window.location.pathname.replace(/\/+$/, "/");
     const base = String(window.INFO_RSS_BASE_URL || "/").replace(/\/+$/, "");
     if (base && base !== "/" && pathname.startsWith(`${base}/`)) {
@@ -36,7 +39,7 @@
       });
 
     article.querySelectorAll("h3 > a[href]").forEach((link) => {
-      const rawUrl = bySource.get(normalizeUrl(link.getAttribute("href")));
+      const rawUrl = bySource.get(normalizeUrl(link.getAttribute("href"))) || bySource.get(normalizeUrl(link.href));
       if (!rawUrl || link.closest("h3").nextElementSibling?.classList.contains("raw-link")) return;
 
       const row = document.createElement("p");
