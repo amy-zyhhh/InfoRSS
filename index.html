@@ -7,6 +7,14 @@ title: 首页
 {% assign today_brief = briefs | first %}
 
 {% if today_brief %}
+  {% assign notice_alert_threshold = site.notice_alert_threshold | default: 3 | plus: 0 %}
+  {% assign today_items_count = today_brief.items_count | default: 0 | plus: 0 %}
+  {% if today_items_count > notice_alert_threshold %}
+    <aside class="notice-alert" role="status">
+      当日通知 {{ today_items_count }} 条，已超过提示阈值 {{ notice_alert_threshold }} 条。
+    </aside>
+  {% endif %}
+
   <nav id="category-toc" class="category-toc" aria-label="当日分类目录" hidden></nav>
 {% endif %}
 

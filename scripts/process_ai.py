@@ -480,7 +480,7 @@ def main() -> int:
     print(f"AI skipped duplicates: {skipped}")
     print(f"AI failed items: {failed}")
     print(f"Markdown: {output_path} ({'updated' if changed else 'unchanged'})")
-    return 1 if failed else 0
+    return 0
 
 
 if __name__ == "__main__":

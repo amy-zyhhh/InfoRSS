@@ -2,6 +2,7 @@ title: 清华信息门户摘要
 description: RSS 抓取与 AI 整理后的清华信息门户通知归档
 lang: zh-CN
 timezone: Asia/Shanghai
+notice_alert_threshold: 90
 
 markdown: kramdown
 permalink: pretty

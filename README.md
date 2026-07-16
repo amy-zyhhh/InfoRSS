@@ -36,6 +36,8 @@ RSS 订阅
 │  ├─ js/toc.js               # 首页分类目录
 │  └─ search-index.json       # 搜索索引
 ├─ _layouts/                  # Jekyll 页面模板
+├─ .github/workflows/
+│  └─ daily.yml               # GitHub Actions 每日自动更新
 ├─ _config.yml                # Jekyll 配置
 ├─ Gemfile                    # Jekyll 依赖
 ├─ .env                       # 本地私密配置，不提交
@@ -84,6 +86,7 @@ OPENAI_MODEL=DeepSeek-V3.2-Thinking
 - 不要把 `.env` 上传到公开仓库。
 - RSS URL 中的 `token` 属于敏感信息。
 - GitHub Actions 中应改用 Repository Secrets。
+- 本地运行时，RSS 地址固定从 `.env` 的 `INFORS_RSS_URL` 读取；命令行仍可用 `--url` 临时覆盖。
 
 ## 时间格式
 
@@ -317,6 +320,8 @@ ai_item_briefs
 python scripts/process_ai.py 20260713 --stop-on-error
 ```
 
+在默认模式下，单条 AI 失败属于降级处理，不会让每日自动任务整体失败。
+
 ### Markdown 与搜索索引阶段
 
 导出文件前会和已有文件比较：
@@ -361,6 +366,14 @@ _site/
 
 下滑页面时，分类目录会固定在顶部，点击分类可以跳转到对应内容。
 
+如果当天通知数量超过阈值，首页会显示提示。阈值在 `_config.yml` 中配置：
+
+```yaml
+notice_alert_threshold: 90
+```
+
+当前阈值为 `90`，后续可以按需要改成其他数量。
+
 右上角菜单包含：
 
 ```text
@@ -390,9 +403,24 @@ python scripts/build_search_index.py
 
 ## GitHub Pages 发布建议
 
+项目已经包含 GitHub Actions 工作流：
+
+```text
+.github/workflows/daily.yml
+```
+
+它会在每天北京时间凌晨 3 点自动运行一次。GitHub Actions 的 cron 使用 UTC，所以配置为：
+
+```yaml
+cron: "0 19 * * *"
+```
+
+也就是 UTC 19:00，对应北京时间次日 03:00。
+
 推荐提交这些内容：
 
 ```text
+.github/workflows/daily.yml
 _config.yml
 Gemfile
 Gemfile.lock
@@ -423,6 +451,112 @@ _site/
 content/briefs/
 assets/search-index.json
 ```
+
+### 1. 在 GitHub 新建仓库
+
+在 GitHub 创建一个新仓库，例如：
+
+```text
+InfoRSS
+```
+
+建议先创建空仓库，不要勾选自动生成 README，避免和本地文件冲突。
+
+### 2. 本地初始化 Git
+
+如果当前目录还不是 Git 仓库，在项目目录运行：
+
+```powershell
+git init
+git add .
+git commit -m "Initial InfoRSS site"
+```
+
+然后关联远程仓库。把下面的地址替换成你自己的仓库地址：
+
+```powershell
+git branch -M main
+git remote add origin https://github.com/你的用户名/InfoRSS.git
+git push -u origin main
+```
+
+### 3. 配置 GitHub Secrets
+
+进入仓库页面：
+
+```text
+Settings -> Secrets and variables -> Actions -> New repository secret
+```
+
+添加这些 Secrets：
+
+```text
+INFORS_RSS_URL
+OPENAI_API_KEY
+OPENAI_BASE_URL
+OPENAI_MODEL
+```
+
+这些值对应本地 `.env` 中的配置。不要把 `.env` 上传到 GitHub。
+
+### 4. 启用 GitHub Pages
+
+进入：
+
+```text
+Settings -> Pages
+```
+
+推荐选择：
+
+```text
+Build and deployment: Deploy from a branch
+Branch: main
+Folder: / (root)
+```
+
+保存后，GitHub Pages 会用仓库里的 Jekyll 文件构建网站。
+
+### 5. 验证自动运行
+
+进入：
+
+```text
+Actions -> Daily InfoRSS Update
+```
+
+可以手动点击：
+
+```text
+Run workflow
+```
+
+手动运行一次，确认流程能成功：
+
+```text
+抓取 RSS -> AI 整理 -> 更新 content/briefs -> 更新 assets/search-index.json -> 自动 commit
+```
+
+以后它会每天北京时间凌晨 3 点自动运行。
+
+### 6. 自动提交内容
+
+工作流只会提交公开展示需要的内容：
+
+```text
+content/briefs/
+assets/search-index.json
+```
+
+不会提交：
+
+```text
+.env
+data/
+content/daily/
+```
+
+这样可以避免把 RSS token、本地数据库和原始抓取快照暴露到公开仓库。
 
 ## 日常维护流程
 

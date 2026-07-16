@@ -92,6 +92,16 @@ nav a {
   border-bottom: 1px solid var(--line);
 }
 
+.notice-alert {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  background: #fff1f1;
+  border: 1px solid #f2a6a6;
+  border-radius: 6px;
+  color: #b42318;
+  font-size: 14px;
+}
+
 .category-toc[hidden] {
   display: none;
 }
