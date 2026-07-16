@@ -89,7 +89,7 @@
               <span>${escapeHtml(item.category)}</span>
               <time>${escapeHtml(item.published_at)}</time>
             </div>
-            <h3><a href="${escapeHtml(item.page_url)}">${escapeHtml(item.title)}</a></h3>
+            <h3><a href="${escapeHtml(item.source_url || item.page_url)}" target="_blank" rel="noopener">${escapeHtml(item.title)}</a></h3>
             <p>${escapeHtml(item.summary)}</p>
             <div class="notice-detail">
               <span>适用对象：${escapeHtml(item.audience || "未标注")}</span>
