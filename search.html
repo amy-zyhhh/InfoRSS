@@ -23,8 +23,8 @@ permalink: /search/
     <div class="check-filter">
       <span>全文</span>
       <label>
+        <span class="sr-only">搜索已抓取原文</span>
         <input id="fulltext-filter" type="checkbox">
-        <span>搜索已抓取原文</span>
       </label>
     </div>
     <label>
@@ -39,14 +39,14 @@ permalink: /search/
         <option value="">全部对象</option>
       </select>
     </label>
-    <label>
-      <span>开始日期</span>
-      <input id="date-start" type="date">
-    </label>
-    <label>
-      <span>结束日期</span>
-      <input id="date-end" type="date">
-    </label>
+    <div class="date-range-filter">
+      <span>发布时间</span>
+      <div>
+        <input id="date-start" type="date" aria-label="开始日期">
+        <span>至</span>
+        <input id="date-end" type="date" aria-label="结束日期">
+      </div>
+    </div>
     <button id="reset-filters" type="button">重置</button>
   </div>
 
@@ -59,4 +59,4 @@ permalink: /search/
   window.INFO_RSS_SEARCH_INDEX = "{{ '/assets/search-index.json' | relative_url }}";
   window.INFO_RSS_BASE_URL = "{{ '/' | relative_url }}";
 </script>
-<script src="{{ '/assets/js/search.js' | relative_url }}" defer></script>
+<script src="{{ '/assets/js/search.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>

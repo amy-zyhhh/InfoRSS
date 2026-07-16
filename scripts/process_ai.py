@@ -360,9 +360,6 @@ def render_markdown(rows: list[sqlite3.Row], label: str) -> str:
         f"items_count: {len(rows)}",
         "---",
         "",
-        "# 清华大学信息门户通知整理",
-        f"> {label} 发布",
-        "",
     ]
 
     grouped: dict[str, list[sqlite3.Row]] = {}
