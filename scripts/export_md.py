@@ -127,7 +127,7 @@ def render_markdown(rows: list[sqlite3.Row], label: str) -> str:
                 f"## {index}. {title}",
                 "",
                 f"- 发布时间：{published}",
-                f"- 原文链接：[{escape_md(row['link'])}]({row['link']})",
+                f"- [原文链接]({row['link']})",
                 f"- 唯一标记：`{row['unique_key_type']}:{row['unique_key_value']}`",
                 f"- 本地 ID：`{row['id']}`",
                 "",

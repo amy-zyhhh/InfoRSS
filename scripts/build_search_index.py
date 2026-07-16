@@ -42,6 +42,13 @@ def clean_inline(value: str) -> str:
     return re.sub(r"\*\*|`", "", value).strip()
 
 
+def parse_heading_title(value: str) -> tuple[str, str]:
+    link = LINK_RE.fullmatch(value.strip())
+    if link:
+        return link.group(1).strip(), link.group(2).strip()
+    return value.strip(), ""
+
+
 def item_url(date_range: str, item_index: int) -> str:
     return f"/content/briefs/{date_range}/#item-{item_index}"
 
@@ -87,17 +94,18 @@ def parse_brief(path: Path) -> list[dict[str, str]]:
             elif level == "###":
                 finish_current()
                 item_index += 1
+                item_title, source_url = parse_heading_title(title)
                 current = {
                     "id": f"{date_range}-{item_index}",
                     "date_range": date_range,
                     "category": category,
-                    "title": title.strip(),
+                    "title": item_title,
                     "published_at": "",
                     "audience": "",
                     "importance": "",
                     "keywords": "",
                     "summary": "",
-                    "source_url": "",
+                    "source_url": source_url,
                     "page_url": page_url,
                     "item_url": item_url(path.stem, item_index),
                 }

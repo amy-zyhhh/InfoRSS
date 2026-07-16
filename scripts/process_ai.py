@@ -387,13 +387,12 @@ def render_markdown(rows: list[sqlite3.Row], label: str) -> str:
             importance = row["importance"] or "未分析"
             lines.extend(
                 [
-                    f"### {row['title']}",
+                    f"### [{row['title']}]({row['link']})",
                     f"*   **发布时间**: {local_time(row['published_at'] or row['updated_at'])}",
                     f"*   **适用对象**: {audience}",
                     f"*   **重要性**: {importance}",
                     f"*   **关键词**: {keywords}",
                     f"*   **摘要**: {summary}",
-                    f"*   **原文链接**: [{row['link']}]({row['link']})",
                     "",
                 ]
             )

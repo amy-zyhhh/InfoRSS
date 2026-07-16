@@ -230,14 +230,14 @@ AI 会为每条通知生成：
 - 重要性
 - 关键词
 - 摘要
-- 原文链接
+- 标题原文链接
 
 如果某条通知无法被 AI 正常分析，脚本不会丢弃这条通知，也不会中断整批流程。该条会降级保留到整理版 Markdown 中：
 
 - 分类显示为 `未分析`
 - 适用对象、重要性、关键词显示为 `未分析`
 - 摘要位置使用原始正文或原始摘要的前一段内容
-- 原文链接继续保留
+- 标题仍然链接到原文
 
 失败详情会写入：
 
@@ -256,6 +256,14 @@ python scripts/process_ai.py 20260713 --max-chars 6000
 ```powershell
 python scripts/process_ai.py 20260713 --force
 ```
+
+整理版 Markdown 中，每条通知的标题会直接链接到原文，例如：
+
+```md
+### [通知标题](https://info.tsinghua.edu.cn/...)
+```
+
+因此页面中不会再单独显示一行“原文链接”。搜索索引会从标题链接中提取原文地址。
 
 ### 5. 生成搜索索引
 
@@ -445,6 +453,17 @@ _site/
 
 当前 `.gitignore` 已忽略 `.env`、`data/`、`_site/` 等本地文件。
 
+如果 `content/daily/` 曾经被提交过，`.gitignore` 不会自动把它从仓库里移除。需要运行：
+
+```powershell
+git rm --cached -r content/daily
+git add .gitignore _config.yml
+git commit -m "Stop tracking raw daily exports"
+git push
+```
+
+这个命令只会取消 Git 追踪，不会删除本地 `content/daily/` 文件。
+
 如果希望 GitHub Pages 展示 AI 整理结果，需要提交：
 
 ```text
@@ -516,6 +535,26 @@ Folder: / (root)
 ```
 
 保存后，GitHub Pages 会用仓库里的 Jekyll 文件构建网站。
+
+注意：GitHub Pages 默认使用的 Jekyll 版本可能比较旧。项目已经避免使用容易触发旧版 Liquid 类型比较错误的写法：
+
+- `date_range` 在 Markdown front matter 中写成字符串，例如 `date_range: "20260715"`
+- 首页和归档页按文件路径排序，不直接按 `date_range` 排序
+- `_config.yml` 排除了 `content/daily`
+
+如果 GitHub Pages 构建日志出现 `comparison of Array with Array failed`，通常是旧文件或原始留档仍被构建。优先检查：
+
+```powershell
+git ls-files content/daily
+```
+
+如果有输出，运行：
+
+```powershell
+git rm --cached -r content/daily
+git commit -m "Remove raw daily exports from Pages build"
+git push
+```
 
 ### 5. 验证自动运行
 
