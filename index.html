@@ -3,7 +3,7 @@ layout: default
 title: 首页
 ---
 
-{% assign briefs = site.pages | where_exp: "page", "page.path contains 'content/briefs/'" | sort: "date_range" | reverse %}
+{% assign briefs = site.pages | where_exp: "page", "page.path contains 'content/briefs/'" | sort: "path" | reverse %}
 {% assign today_brief = briefs | first %}
 
 {% if today_brief %}

@@ -106,7 +106,7 @@ def render_markdown(rows: list[sqlite3.Row], label: str) -> str:
     lines = [
         "---",
         f"title: 清华信息门户原始通知 {label}",
-        f"date_range: {label}",
+        f"date_range: \"{label}\"",
         f"generated_at: {generated_at}",
         f"items_count: {len(rows)}",
         "---",

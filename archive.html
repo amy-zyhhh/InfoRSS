@@ -4,7 +4,7 @@ title: 归档
 permalink: /archive/
 ---
 
-{% assign briefs = site.pages | where_exp: "page", "page.path contains 'content/briefs/'" | sort: "date_range" | reverse %}
+{% assign briefs = site.pages | where_exp: "page", "page.path contains 'content/briefs/'" | sort: "path" | reverse %}
 
 <section class="page-header">
   <h1>归档</h1>
