@@ -88,7 +88,6 @@
             <div class="notice-meta">
               <span>${escapeHtml(item.category)}</span>
               <time>${escapeHtml(item.published_at)}</time>
-              <span>${escapeHtml(item.importance || "普通")}</span>
             </div>
             <h3><a href="${escapeHtml(item.page_url)}">${escapeHtml(item.title)}</a></h3>
             <p>${escapeHtml(item.summary)}</p>

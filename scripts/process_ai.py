@@ -163,7 +163,6 @@ def build_item_prompt(row: sqlite3.Row, max_chars: int) -> str:
             "schema": {
                 "category": f"只能从这些类别选择：{', '.join(CATEGORIES)}",
                 "audience": "适用对象，尽量简短",
-                "importance": "高 / 中 / 低",
                 "keywords": "3-5 个关键词数组",
                 "summary": "2-4 句中文摘要，不编造正文中没有的信息",
             },
@@ -252,14 +251,9 @@ def normalize_brief(data: dict[str, object]) -> dict[str, object]:
         keywords = []
     keywords = [str(item).strip() for item in keywords if str(item).strip()][:5]
 
-    importance = str(data.get("importance") or "中").strip()
-    if importance not in {"高", "中", "低"}:
-        importance = "中"
-
     return {
         "category": category,
         "audience": str(data.get("audience") or "未标注").strip(),
-        "importance": importance,
         "keywords": keywords,
         "summary": str(data.get("summary") or "").strip(),
     }
@@ -289,7 +283,7 @@ def save_brief(conn: sqlite3.Connection, row: sqlite3.Row, model: str, brief: di
             dt.datetime.now(dt.UTC).replace(microsecond=0).isoformat(),
             brief["category"],
             brief["audience"],
-            brief["importance"],
+            "",
             json.dumps(brief["keywords"], ensure_ascii=False),
             brief["summary"],
         ),
@@ -341,7 +335,7 @@ def rows_with_briefs(conn: sqlite3.Connection, since: dt.datetime, until: dt.dat
             """
             SELECT f.id, f.title, f.link, f.published_at, f.updated_at,
                    f.summary AS raw_summary, f.content AS raw_content,
-                   b.category, b.audience, b.importance, b.keywords_json, b.summary AS ai_summary
+                   b.category, b.audience, b.keywords_json, b.summary AS ai_summary
             FROM feed_items f
             LEFT JOIN ai_item_briefs b
               ON b.item_id = f.id
@@ -384,13 +378,11 @@ def render_markdown(rows: list[sqlite3.Row], label: str) -> str:
             keywords = "，".join(json.loads(row["keywords_json"] or "[]")) if row["keywords_json"] else "未分析"
             summary = row["ai_summary"] or plain_text(row["raw_content"] or row["raw_summary"])[:1200]
             audience = row["audience"] or "未分析"
-            importance = row["importance"] or "未分析"
             lines.extend(
                 [
                     f"### [{row['title']}]({row['link']})",
                     f"*   **发布时间**: {local_time(row['published_at'] or row['updated_at'])}",
                     f"*   **适用对象**: {audience}",
-                    f"*   **重要性**: {importance}",
                     f"*   **关键词**: {keywords}",
                     f"*   **摘要**: {summary}",
                     "",

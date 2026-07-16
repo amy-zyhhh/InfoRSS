@@ -71,7 +71,6 @@ def parse_brief(path: Path) -> list[dict[str, str]]:
                 current.get("title", ""),
                 current.get("category", ""),
                 current.get("audience", ""),
-                current.get("importance", ""),
                 current.get("keywords", ""),
                 current.get("summary", ""),
             ]
@@ -102,7 +101,6 @@ def parse_brief(path: Path) -> list[dict[str, str]]:
                     "title": item_title,
                     "published_at": "",
                     "audience": "",
-                    "importance": "",
                     "keywords": "",
                     "summary": "",
                     "source_url": source_url,
@@ -124,8 +122,6 @@ def parse_brief(path: Path) -> list[dict[str, str]]:
             current["published_at"] = value
         elif name == "适用对象":
             current["audience"] = value
-        elif name == "重要性":
-            current["importance"] = value
         elif name == "关键词":
             current["keywords"] = value
         elif name == "摘要":
