@@ -241,6 +241,8 @@ content/raw/daily/20260713.md
 
 首页展示的是最新一个摘要文件的内容，但首页路径本身不是摘要文件路径。为保证首页也能匹配到正确的原文链接，`index.html` 会把当前展示的摘要地址写入 `window.INFO_RSS_CURRENT_BRIEF_URL`，再由 `assets/js/brief-raw-links.js` 根据搜索索引补上“已抓取的原文”入口。
 
+GitHub Pages 项目站点 URL 中包含仓库名前缀，例如 `/InfoRSS/`。`brief-raw-links.js` 会在比较摘要路径前去掉这个前缀，避免线上把 `/InfoRSS/content/...` 和索引里的 `/content/...` 当成两个不同地址。
+
 ### 5. AI 整理
 
 ```powershell

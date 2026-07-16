@@ -9,6 +9,23 @@
     return `${base}/${raw.replace(/^\/+/, "")}`;
   }
 
+  function basePath() {
+    return String(window.INFO_RSS_BASE_URL || "/").replace(/\/+$/, "");
+  }
+
+  function stripBasePath(value) {
+    let path = String(value || "").replace(/\/+$/, "/");
+    try {
+      path = new URL(path, window.location.origin).pathname.replace(/\/+$/, "/");
+    } catch {}
+
+    const base = basePath();
+    if (base && base !== "/" && path.startsWith(`${base}/`)) {
+      path = path.slice(base.length).replace(/\/+$/, "/");
+    }
+    return path || "/";
+  }
+
   function normalizeUrl(value) {
     try {
       return new URL(value, window.location.origin).href;
@@ -19,10 +36,10 @@
 
   function currentBriefPath() {
     if (window.INFO_RSS_CURRENT_BRIEF_URL) {
-      return String(window.INFO_RSS_CURRENT_BRIEF_URL).replace(/\/+$/, "/");
+      return stripBasePath(window.INFO_RSS_CURRENT_BRIEF_URL);
     }
     const pathname = window.location.pathname.replace(/\/+$/, "/");
-    const base = String(window.INFO_RSS_BASE_URL || "/").replace(/\/+$/, "");
+    const base = basePath();
     if (base && base !== "/" && pathname.startsWith(`${base}/`)) {
       return pathname.slice(base.length).replace(/\/+$/, "/");
     }
@@ -33,7 +50,7 @@
     const path = currentBriefPath();
     const bySource = new Map();
     items
-      .filter((item) => siteUrl(item.page_url || "").replace(/\/+$/, "/") === siteUrl(path).replace(/\/+$/, "/"))
+      .filter((item) => stripBasePath(item.page_url || "") === path)
       .forEach((item) => {
         bySource.set(normalizeUrl(item.source_url), item.raw_url);
       });
