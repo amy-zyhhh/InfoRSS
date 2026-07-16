@@ -13,6 +13,7 @@ from pathlib import Path
 
 DEFAULT_INPUT_DIR = Path("content/briefs")
 DEFAULT_OUTPUT = Path("assets/search-index.json")
+DEFAULT_RAW_OUTPUT = Path("assets/raw-search-index.json")
 
 
 FRONTMATTER_RE = re.compile(r"\A---\n(.*?)\n---\n", re.S)
@@ -102,6 +103,8 @@ def parse_brief(path: Path) -> list[dict[str, str]]:
                 current.get("summary", ""),
             ]
         )
+        if current.get("raw_text"):
+            current["raw_index_url"] = "/assets/raw-search-index.json"
         items.append(current.copy())
 
     item_index = 0
@@ -177,23 +180,38 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Build a JSON search index from content/briefs.")
     parser.add_argument("--input-dir", type=Path, default=DEFAULT_INPUT_DIR)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--raw-output", type=Path, default=DEFAULT_RAW_OUTPUT)
     args = parser.parse_args()
 
     try:
         items = build_index(args.input_dir)
+        raw_items = {
+            item["id"]: item.pop("raw_text", "")
+            for item in items
+            if item.get("raw_text")
+        }
         content = json.dumps(items, ensure_ascii=False, indent=2) + "\n"
+        raw_content = json.dumps(raw_items, ensure_ascii=False, indent=2) + "\n"
         args.output.parent.mkdir(parents=True, exist_ok=True)
         if args.output.exists() and args.output.read_text(encoding="utf-8") == content:
             changed = False
         else:
             args.output.write_text(content, encoding="utf-8")
             changed = True
+        args.raw_output.parent.mkdir(parents=True, exist_ok=True)
+        if args.raw_output.exists() and args.raw_output.read_text(encoding="utf-8") == raw_content:
+            raw_changed = False
+        else:
+            args.raw_output.write_text(raw_content, encoding="utf-8")
+            raw_changed = True
     except OSError as exc:
         print(f"Cannot build search index: {exc}", file=sys.stderr)
         return 1
 
     print(f"Items: {len(items)}")
+    print(f"Raw text items: {len(raw_items)}")
     print(f"Index: {args.output} ({'updated' if changed else 'unchanged, skipped duplicate write'})")
+    print(f"Raw index: {args.raw_output} ({'updated' if raw_changed else 'unchanged, skipped duplicate write'})")
     return 0
 
 

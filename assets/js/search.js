@@ -7,6 +7,8 @@
     start: "",
     end: "",
     fullText: false,
+    rawTexts: {},
+    rawLoading: null,
   };
 
   const els = {
@@ -48,6 +50,35 @@
     return `${base}/${raw.replace(/^\/+/, "")}`;
   }
 
+  function itemRawText(item) {
+    return state.rawTexts[item.id] || "";
+  }
+
+  function loadRawIndex() {
+    if (!state.fullText) return Promise.resolve();
+    if (Object.keys(state.rawTexts).length) return Promise.resolve();
+    if (state.rawLoading) return state.rawLoading;
+
+    const first = state.items.find((item) => item.raw_index_url);
+    if (!first) return Promise.resolve();
+
+    state.rawLoading = fetch(siteUrl(first.raw_index_url))
+      .then((response) => {
+        if (!response.ok) throw new Error("raw search index not found");
+        return response.json();
+      })
+      .then((rawTexts) => {
+        state.rawTexts = rawTexts || {};
+      })
+      .catch(() => {
+        state.rawTexts = {};
+      })
+      .finally(() => {
+        state.rawLoading = null;
+      });
+    return state.rawLoading;
+  }
+
   function uniqueValues(key) {
     return Array.from(new Set(state.items.map((item) => item[key]).filter(Boolean))).sort((a, b) =>
       a.localeCompare(b, "zh-Hans-CN")
@@ -65,7 +96,7 @@
   }
 
   function matches(item) {
-    const haystack = normalize(state.fullText ? `${item.text || ""} ${item.raw_text || ""}` : item.text);
+    const haystack = normalize(state.fullText ? `${item.text || ""} ${itemRawText(item)}` : item.text);
     const query = normalize(state.query);
     const date = itemDate(item);
 
@@ -92,6 +123,9 @@
               .map((keyword) => `<span>${escapeHtml(keyword.trim())}</span>`)
               .join("")
           : "";
+        const query = normalize(state.query);
+        const textHit = query && normalize(item.text).includes(query);
+        const rawHit = state.fullText && query && !textHit && normalize(itemRawText(item)).includes(query);
         return `
           <article class="notice-card">
             <div class="notice-meta">
@@ -108,6 +142,7 @@
                   : ""
               }
             </div>
+            ${rawHit ? '<div class="hit-note">命中：已抓取原文</div>' : ""}
             <div class="tag-list">${keywords}</div>
           </article>
         `;
@@ -122,6 +157,11 @@
     state.start = els.start.value;
     state.end = els.end.value;
     state.fullText = Boolean(els.fullText && els.fullText.checked);
+    if (state.fullText && !Object.keys(state.rawTexts).length) {
+      els.count.textContent = "正在读取全文索引";
+      loadRawIndex().then(() => render(state.items.filter(matches)));
+      return;
+    }
     render(state.items.filter(matches));
   }
 

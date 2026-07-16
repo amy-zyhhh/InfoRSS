@@ -375,6 +375,12 @@ h3 {
   gap: 10px;
 }
 
+.hit-note {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .tag-list {
   margin-top: 12px;
 }

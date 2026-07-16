@@ -389,11 +389,43 @@ def render_markdown(rows: list[sqlite3.Row], label: str) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+def render_json(rows: list[sqlite3.Row], label: str) -> str:
+    generated_at = dt.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %z")
+    items = []
+    for index, row in enumerate(rows, start=1):
+        keywords = json.loads(row["keywords_json"] or "[]") if row["keywords_json"] else []
+        summary = row["ai_summary"] or plain_text(row["raw_content"] or row["raw_summary"])[:1200]
+        items.append(
+            {
+                "id": f"{label}-{index}",
+                "title": row["title"],
+                "source_url": row["link"],
+                "published_at": local_time(row["published_at"] or row["updated_at"]),
+                "category": row["category"] or "未分析",
+                "audience": row["audience"] or "未分析",
+                "keywords": keywords,
+                "summary": summary,
+            }
+        )
+    return json.dumps(
+        {
+            "date_range": label,
+            "generated_at": generated_at,
+            "items_count": len(items),
+            "items": items,
+        },
+        ensure_ascii=False,
+        indent=2,
+    ) + "\n"
+
+
 def write_if_changed(path: Path, content: str) -> bool:
     if path.exists():
         old = path.read_text(encoding="utf-8")
         comparable_old = re.sub(r"generated_at: .+", "generated_at: <ignored>", old)
         comparable_new = re.sub(r"generated_at: .+", "generated_at: <ignored>", content)
+        comparable_old = re.sub(r'"generated_at": ".+?"', '"generated_at": "<ignored>"', comparable_old)
+        comparable_new = re.sub(r'"generated_at": ".+?"', '"generated_at": "<ignored>"', comparable_new)
         if comparable_old == comparable_new:
             return False
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -454,6 +486,8 @@ def main() -> int:
         brief_rows = rows_with_briefs(conn, since, until, model)
         output_path = args.output or args.output_dir / f"{label}.md"
         changed = write_if_changed(output_path, render_markdown(brief_rows, label))
+        json_path = output_path.with_suffix(".json")
+        json_changed = write_if_changed(json_path, render_json(brief_rows, label))
     except (urllib.error.URLError, KeyError, json.JSONDecodeError, ValueError, sqlite3.Error) as exc:
         print(f"AI processing failed: {exc}", file=sys.stderr)
         return 1
@@ -468,6 +502,7 @@ def main() -> int:
     print(f"AI skipped duplicates: {skipped}")
     print(f"AI failed items: {failed}")
     print(f"Markdown: {output_path} ({'updated' if changed else 'unchanged'})")
+    print(f"JSON: {json_path} ({'updated' if json_changed else 'unchanged'})")
     return 0
 
 

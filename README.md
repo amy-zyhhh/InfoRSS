@@ -24,8 +24,10 @@ RSS 订阅
 │  ├─ list_items.py           # 查看数据库中的通知
 │  ├─ export_md.py            # 导出原始 Markdown
 │  ├─ export_public_raw.py    # 导出公开展示的已抓取原文页面
+│  ├─ export_brief_json.py    # 从摘要 Markdown 导出结构化 JSON
 │  ├─ process_ai.py           # AI 增量整理
-│  └─ build_search_index.py   # 生成网页搜索索引
+│  ├─ build_search_index.py   # 生成网页搜索索引
+│  └─ check_site.py           # 检查公开页面数据一致性
 ├─ data/
 │  ├─ rss.sqlite3             # 本地 SQLite 数据库
 │  └─ raw/                    # RSS 原始 XML 快照
@@ -38,7 +40,8 @@ RSS 订阅
 │  ├─ js/search.js            # 前端搜索与筛选
 │  ├─ js/brief-raw-links.js   # 首页和摘要详情页的已抓取原文入口
 │  ├─ js/toc.js               # 首页分类目录
-│  └─ search-index.json       # 搜索索引
+│  ├─ search-index.json       # 轻量搜索索引
+│  └─ raw-search-index.json   # 已抓取原文全文索引
 ├─ _layouts/                  # Jekyll 页面模板
 ├─ .github/workflows/
 │  └─ daily.yml               # GitHub Actions 每日自动更新
@@ -141,7 +144,9 @@ python scripts/run_all.py 20260713
 3. 导出原始 Markdown
 4. 导出公开展示的已抓取原文页面
 5. 调用 AI 生成整理版 Markdown
-6. 生成搜索索引
+6. 导出结构化 JSON
+7. 生成轻量搜索索引和全文索引
+8. 检查生成结果一致性
 
 输出文件：
 
@@ -150,7 +155,9 @@ content/daily/20260713.md
 content/raw/items/
 content/raw/daily/20260713.md
 content/briefs/20260713.md
+content/briefs/20260713.json
 assets/search-index.json
+assets/raw-search-index.json
 ```
 
 跳过某些步骤：
@@ -159,6 +166,8 @@ assets/search-index.json
 python scripts/run_all.py 20260713 --skip-fetch
 python scripts/run_all.py 20260713 --skip-ai
 python scripts/run_all.py 20260713 --skip-public-raw
+python scripts/run_all.py 20260713 --skip-json
+python scripts/run_all.py 20260713 --skip-check
 python scripts/run_all.py 20260713 --skip-fetch --skip-raw-md --skip-public-raw --skip-ai
 ```
 
@@ -253,6 +262,7 @@ python scripts/process_ai.py 20260713
 
 ```text
 content/briefs/20260713.md
+content/briefs/20260713.json
 ```
 
 AI 会为每条通知生成：
@@ -262,6 +272,8 @@ AI 会为每条通知生成：
 - 关键词
 - 摘要
 - 标题原文链接
+
+`process_ai.py` 会同时生成 Markdown 和结构化 JSON。Markdown 用于 Jekyll 页面展示，JSON 用于后续程序化维护、检查或扩展页面功能，避免所有逻辑都依赖 Markdown 文本解析。
 
 如果某条通知无法被 AI 正常分析，脚本不会丢弃这条通知，也不会中断整批流程。该条会降级保留到整理版 Markdown 中：
 
@@ -296,7 +308,27 @@ python scripts/process_ai.py 20260713 --force
 
 因此页面中不会再单独显示一行“原文链接”。搜索索引会从标题链接中提取原网页地址，并根据该地址匹配 `content/raw/items/` 中的已抓取原文页面。
 
-### 6. 生成搜索索引
+### 6. 导出结构化 JSON
+
+如果只修改了已有摘要 Markdown，或者需要为历史摘要补 JSON，可以运行：
+
+```powershell
+python scripts/export_brief_json.py
+```
+
+只处理某一天：
+
+```powershell
+python scripts/export_brief_json.py 20260713
+```
+
+输出：
+
+```text
+content/briefs/20260713.json
+```
+
+### 7. 生成搜索索引
 
 ```powershell
 python scripts/build_search_index.py
@@ -306,12 +338,30 @@ python scripts/build_search_index.py
 
 ```text
 assets/search-index.json
+assets/raw-search-index.json
 ```
 
-搜索页的搜索和筛选依赖这个文件。索引中同时包含 AI 摘要字段和已抓取原文全文字段：
+搜索页的搜索和筛选依赖这两个文件：
 
-- 默认搜索：标题、类别、适用对象、关键词、摘要
-- 勾选“全文”：在默认搜索范围之外，额外搜索已抓取原文全文
+- `assets/search-index.json`：轻量索引，包含标题、类别、适用对象、关键词、摘要、原网页地址、已抓取原文页地址等字段。
+- `assets/raw-search-index.json`：全文索引，只保存已抓取原文全文，体积较大。
+
+默认搜索只加载轻量索引；只有勾选“全文”后，浏览器才会额外加载 `raw-search-index.json`。这样数据增多后，普通搜索页面仍能较快打开。
+
+### 8. 检查生成结果
+
+```powershell
+python scripts/check_site.py
+```
+
+检查内容包括：
+
+- 搜索索引格式是否正确
+- `raw_url` 指向的公开原文页面是否存在
+- 全文索引是否包含对应条目
+- 摘要 Markdown 的 `items_count` 是否等于实际通知数量
+- 每个摘要 Markdown 是否有对应 JSON
+- 是否误提交 `.env`、`data/`、`content/daily/` 或 SQLite 文件
 
 ## 增量保存与重复检测
 
@@ -370,7 +420,8 @@ python scripts/process_ai.py 20260713 --stop-on-error
 
 - 内容没变则跳过写入
 - 生成时间变化不会导致重复覆盖
-- 搜索索引没变也会跳过写入
+- 结构化 JSON 没变会跳过写入
+- 轻量搜索索引和全文索引没变也会跳过写入
 
 ## 本地预览 Jekyll 网站
 
@@ -442,18 +493,23 @@ notice_alert_threshold: 90
 
 默认情况下，搜索只匹配标题、类别、适用对象、关键词和摘要；勾选“全文”后，会把 `content/raw/items/` 中对应条目的全文也纳入检索。这个开关只显示一个小复选框，页面上不会再额外显示“搜索已抓取原文”文字。
 
+如果某个关键词只出现在已抓取原文中，而没有出现在标题、关键词或摘要里，搜索结果会显示“命中：已抓取原文”，便于区分命中来源。
+
 首页和每日摘要详情页都支持在每条通知后打开“已抓取的原文”。这个入口依赖 `assets/search-index.json` 中的 `raw_url` 字段；如果某天没有先生成 `content/raw/items/`，入口不会显示。摘要正文不再重复显示“清华大学信息门户通知整理”和“某日发布”这类标题；这些信息已经由页面顶部标题和日期承担。
 
 搜索数据来自：
 
 ```text
 assets/search-index.json
+assets/raw-search-index.json
 ```
 
 如果修改了 `content/briefs/*.md`，请重新运行：
 
 ```powershell
+python scripts/export_brief_json.py
 python scripts/build_search_index.py
+python scripts/check_site.py
 ```
 
 页面引用 CSS 和 JS 时会自动带上构建时间版本号，推送到 GitHub Pages 后可以减少浏览器继续使用旧样式或旧脚本的问题。
@@ -623,8 +679,17 @@ Run workflow
 手动运行一次，确认流程能成功：
 
 ```text
-抓取 RSS -> 导出公开原文页 -> AI 整理 -> 更新 content/briefs -> 更新 content/raw -> 更新 assets/search-index.json -> 自动 commit
+抓取 RSS -> 导出公开原文页 -> AI 整理 -> 导出结构化 JSON -> 生成搜索索引 -> 检查站点数据 -> 构建 Jekyll -> 自动 commit
 ```
+
+工作流会在提交生成内容前运行：
+
+```text
+python scripts/check_site.py
+bundle exec jekyll build
+```
+
+如果生成的数据互相不一致，或者 Jekyll 无法构建，自动任务会失败并保留错误日志，避免把明显损坏的内容继续提交。
 
 以后它会每天北京时间凌晨 3 点自动运行。
 
@@ -648,6 +713,7 @@ Run workflow
 content/briefs/
 content/raw/
 assets/search-index.json
+assets/raw-search-index.json
 ```
 
 不会提交：
@@ -686,7 +752,9 @@ git push
 
 ```powershell
 python scripts/export_public_raw.py 20260715
+python scripts/export_brief_json.py 20260715
 python scripts/build_search_index.py
+python scripts/check_site.py
 ```
 
 这样会让首页、搜索页和每日摘要详情页重新获得“已抓取的原文”入口，并让“全文”搜索可以检索到新增的原文内容。
@@ -755,7 +823,6 @@ python scripts/build_search_index.py
 - 更细粒度的分类体系
 - 关键词页
 - RSS 历史补档
-- 将 AI 结果导出为结构化 JSON
 - 增加失败重试和日志文件
 
 当前项目的核心原则：

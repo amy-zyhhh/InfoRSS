@@ -56,7 +56,9 @@ def main() -> int:
     parser.add_argument("--skip-raw-md", action="store_true", help="Skip raw Markdown export.")
     parser.add_argument("--skip-public-raw", action="store_true", help="Skip public captured raw pages.")
     parser.add_argument("--skip-ai", action="store_true", help="Skip AI brief generation.")
+    parser.add_argument("--skip-json", action="store_true", help="Skip structured JSON sidecar export.")
     parser.add_argument("--skip-index", action="store_true", help="Skip search index generation.")
+    parser.add_argument("--skip-check", action="store_true", help="Skip generated site consistency checks.")
     args = parser.parse_args()
 
     try:
@@ -88,9 +90,19 @@ def main() -> int:
             args.skip_ai,
         ),
         (
+            "Export structured JSON",
+            [python, "scripts/export_brief_json.py", date_range],
+            args.skip_json,
+        ),
+        (
             "Build search index",
             [python, "scripts/build_search_index.py"],
             args.skip_index,
+        ),
+        (
+            "Check generated site",
+            [python, "scripts/check_site.py"],
+            args.skip_check,
         ),
     ]
 
@@ -104,7 +116,9 @@ def main() -> int:
     print(f"Raw Markdown: content/daily/{date_range}.md")
     print(f"Public raw day page: content/raw/daily/{date_range}.md")
     print(f"AI brief: content/briefs/{date_range}.md")
+    print(f"Structured JSON: content/briefs/{date_range}.json")
     print("Search index: assets/search-index.json")
+    print("Raw search index: assets/raw-search-index.json")
     return 0
 
 
